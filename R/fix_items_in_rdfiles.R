@@ -1,0 +1,95 @@
+.is_single_non_empty_string <- function(x)
+{
+    is.character(x) && length(x) == 1L && !is.na(x) && nzchar(x)
+}
+
+### 'eol_marker' must be a string unlikely to be found in the input.
+### Cannot contain any of the following: square/curly brackets, parentheses,
+### the pipe symbol, or dots.
+### Assumes that \code{} tags don't contain curly brackets, except when
+### they contain a \link{} tag.
+fix_items_in_lines <- function(lines, eol_marker="<<<-XXX->>>")
+{
+    if (!is.character(lines))
+        stop("'lines' must be a character vector")
+    if (!.is_single_non_empty_string(eol_marker))
+        stop("'eol_marker' must be a single non-empty string")
+    if (any(grepl("[][{}()|.]", eol_marker)))
+        stop("'eol_marker' cannot contain square or curly brackets, ",
+             "parentheses, the pipe symbol, or dots")
+    if (any(grepl(eol_marker, lines, fixed=TRUE)))
+        stop("input lines contain occurences of 'eol_marker', ",
+             "please use a different 'eol_marker'")
+    bigline <- paste(lines, collapse=eol_marker)
+
+    whitespaces <- paste0("([ \\t\\r\\n\\f]|", eol_marker, ")*")
+    link_pattern <- "\\\\link(\\[[^[]]*\\])?\\{[^{}]*\\}"
+    nolink_code_pattern <- "\\\\code\\{[^{}]*\\}"
+    withlink_code_pattern <- sprintf("\\\\code\\{[^{}]*%s[^{}]*\\}",
+                                     link_pattern)
+    code_pattern <- sprintf("(%s|%s)", nolink_code_pattern,
+                                       withlink_code_pattern)
+    move_me_pattern <- sprintf("%s(%s,%s%s)*",
+                               code_pattern,
+                               whitespaces, whitespaces, code_pattern)
+    ## The \item tags to fix are of the form:
+    ##   \item{}{\code{}, \code{}: ...}
+    ## They need to be replaced with:
+    ##   \item{\code{}, \code{}:}{ ...}
+    bad_item_pattern <- sprintf("\\\\item\\{%s\\}%s\\{%s(%s)(%s:)?",
+                                whitespaces, whitespaces, whitespaces,
+                                move_me_pattern, whitespaces)
+
+    res <- gregexpr(bad_item_pattern, bigline)[[1L]]
+    nb_replacements <- length(res)
+    if (nb_replacements == 1L && res == -1L)
+        nb_replacements <- 0L
+    replacement <- "\\\\item{\\4:}{"
+    ans <- gsub(bad_item_pattern, replacement, bigline)
+    ans <- strsplit(ans, eol_marker, fixed=TRUE)[[1L]]
+    attr(ans, "nb_replacements") <- nb_replacements
+    ans
+}
+
+fix_items_in_file <- function(infile, outfile=stdout(),
+                              sep="\n", eol_marker="<<<-XXX->>>")
+{
+    if (!.is_single_non_empty_string(infile))
+        stop("'infile' must be a single non-empty string")
+    if (!.is_single_non_empty_string(outfile))
+        stop("'outfile' must be a single non-empty string")
+    lines <- fix_items_in_lines(readLines(infile), eol_marker=eol_marker)
+    nb_replacements <- attr(lines, "nb_replacements")
+    writeLines(lines, outfile, sep=sep)
+    nb_replacements
+}
+
+fix_items_in_rdfiles <- function(indir=".", outdir=indir, pattern="\\.Rd$",
+                                 sep="\n", eol_marker="<<<-XXX->>>")
+{
+    if (!.is_single_non_empty_string(indir))
+        stop("'indir' must be a single non-empty string")
+    if (!.is_single_non_empty_string(outdir))
+        stop("'outdir' must be a single non-empty string")
+    rdfiles <- dir(indir, pattern=pattern)
+    nfiles <- length(rdfiles)
+    message("Parsing ", nfiles, " files to replace all ",
+            "occurences of:\n",
+            "    \\item{}{\\code{...}: ...}\n",
+            "with:\n",
+            "    \\item{\\code{...}:}{ ...}")
+    total_replacements <- 0L
+    for (i in seq_len(nfiles)) {
+        rdfile <- rdfiles[[i]]
+        infile <- file.path(indir, rdfile)
+        outfile <- file.path(outdir, rdfile)
+        message("- ", i, "/", nfiles, ": processing ",
+                "file '", rdfile, "' ... ", appendLF=FALSE)
+        nb_replacements <- fix_items_in_file(infile, outfile,
+                                             sep=sep, eol_marker=eol_marker)
+        message("ok (", nb_replacements, " replacements)")
+        total_replacements <- total_replacements + nb_replacements
+    }
+    total_replacements
+}
+

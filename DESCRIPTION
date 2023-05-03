@@ -1,0 +1,15 @@
+Package: fixRdItems
+Title: Replace \item{}{\code{...}: ...} with \item{\code{...}:}{ ...} in .Rd files
+Description: A simple utility to fix '\item' tags with empty labels
+	in .Rd files. '\item' tags with empty labels are sometimes found
+	in '\\describe' sections, and they typically have the following
+	form: \item{}{\code{...}: ...}
+	Starting with R 4.3, they are no longer considered valid, and they
+	trigger an 'R CMD check' warning. The utility provided in this package
+	fixes this by replacing them with alternative form:
+	\item{\code{...}:}{ ...}
+Version: 0.0.1
+Encoding: UTF-8
+Author: Hervé Pagès
+Maintainer: Hervé Pagès <hpages.on.github@gmail.com>
+License: Artistic-2.0

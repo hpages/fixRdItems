@@ -1,0 +1,76 @@
+\name{fix_items_in_rdfiles}
+
+\alias{fixRdItems}
+\alias{fix_items_in_lines}
+\alias{fix_items_in_file}
+\alias{fix_items_in_rdfiles}
+
+\title{Fix item's with empty labels in .Rd files}
+
+\description{
+  A simple utility to fix '\\item' tags with empty labels in .Rd files.
+  '\\item' tags with empty labels are sometimes found in '\\describe'
+  sections, and they typically have the following form:
+  \preformatted{    \item{}{\code{...}: ...}}
+
+  Unfortunately, starting with R 4.3, they are no longer considered
+  valid, and they trigger an \code{R CMD check} warning.
+  \code{fix_items_in_rdfiles} fixes this by replacing them
+  with alternative form:
+  \preformatted{    \item{\code{...}:}{ ...}}
+}
+
+\usage{
+fix_items_in_rdfiles(indir=".", outdir=indir, pattern="\\\\.Rd$",
+                     sep="\n", eol_marker="<<<-XXX->>>")
+}
+
+\arguments{
+  \item{indir}{
+    The path to the directory containing the input .Rd files.
+  }
+  \item{outdir}{
+    The path to the directory where to write the output .Rd files.
+    When set to \code{indir} (the default), files are modified in-place.
+  }
+  \item{pattern}{
+    Passed to the call to \code{\link[base]{dir}()} used internally
+    to obtain the list of input files (the call used for that is
+    \code{\link[base]{dir}(indir, pattern=pattern)}).
+    Set to \code{"\\\\.Rd$"} by default.
+  }
+  \item{sep}{
+    Passed to the internal call to \code{\link[base]{writeLines}()}
+    used to write the output files.
+  }
+  \item{eol_marker}{
+    A single string used internally to keep track of the line breaks
+    in the big line formed by concatenating together all the input
+    lines of a given .Rd file.
+  }
+}
+
+\value{
+  The total number of replacements.
+}
+
+\seealso{
+  \itemize{
+    \item This conversation from Dec 2022 on the bioc-devel
+          mailing list where this topic was discussed:
+      \url{https://stat.ethz.ch/pipermail/bioc-devel/2022-December/019353.html}
+
+    \item The \code{\link[base]{dir}} and \code{\link[base]{writeLines}}
+          functions in base R.
+  }
+}
+
+\examples{
+indir <- system.file(package="fixRdItems", "extdata")
+outdir <- file.path(tempdir(), "fakePackage", "man")
+dir.create(outdir, recursive=TRUE)
+
+fix_items_in_rdfiles(indir, outdir)
+}
+
+\keyword{utilities}
