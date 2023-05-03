@@ -24,7 +24,7 @@ fix_items_in_lines <- function(lines, eol_marker="<<<-XXX->>>")
     bigline <- paste(lines, collapse=eol_marker)
 
     whitespaces <- paste0("([ \\t\\r\\n\\f]|", eol_marker, ")*")
-    link_pattern <- "\\\\link(\\[[^[]]*\\])?\\{[^{}]*\\}"
+    link_pattern <- "\\\\link(\\[[^][]*\\])?\\{[^{}]*\\}"
     nolink_code_pattern <- "\\\\code\\{[^{}]*\\}"
     withlink_code_pattern <- sprintf("\\\\code\\{[^{}]*%s[^{}]*\\}",
                                      link_pattern)
@@ -52,7 +52,7 @@ fix_items_in_lines <- function(lines, eol_marker="<<<-XXX->>>")
     ans
 }
 
-fix_items_in_file <- function(infile, outfile=stdout(),
+fix_items_in_file <- function(infile, outfile=infile,
                               sep="\n", eol_marker="<<<-XXX->>>")
 {
     if (!.is_single_non_empty_string(infile))

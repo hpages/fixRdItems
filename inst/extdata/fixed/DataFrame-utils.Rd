@@ -53,8 +53,7 @@
       Returns a subset with incomplete cases removed (but to be
       included with NAs in statistical results).
     }
-    \item{}{
-      \code{\link[base]{is.na}(x)}:
+    \item{\code{\link[base]{is.na}(x)}:}{
       Returns a logical matrix indicating which cells are missing.
     }
     \item{\code{\link{complete.cases}(x)}:}{
