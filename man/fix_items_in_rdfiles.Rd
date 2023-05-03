@@ -14,8 +14,8 @@
 }
 
 \usage{
-fix_items_in_rdfiles(indir=".", outdir=indir, pattern="\\\\.Rd$",
-                     sep="\n", eol_marker="<<<-XXX->>>")
+fix_items_in_rdfiles(indir=".", outdir=indir, dry.run=FALSE,
+                     pattern="\\\\.Rd$", sep="\n", eol_marker="<<<-XXX->>>")
 }
 
 \arguments{
@@ -25,6 +25,10 @@ fix_items_in_rdfiles(indir=".", outdir=indir, pattern="\\\\.Rd$",
   \item{outdir}{
     The path to the directory where to write the output .Rd files.
     When set to \code{indir} (the default), files are modified in-place.
+  }
+  \item{dry.run}{
+    \code{TRUE} or \code{FALSE}. When set to \code{TRUE}, the output files
+    aren't actually written.
   }
   \item{pattern}{
     Passed to the call to \code{\link[base]{dir}()} used internally
@@ -76,6 +80,10 @@ indir <- system.file(package="fixRdItems", "extdata")
 outdir <- file.path(tempdir(), "fakePackage", "man")
 dir.create(outdir, recursive=TRUE)
 
+## Dry-run:
+fix_items_in_rdfiles(indir, outdir, dry.run=TRUE)
+
+## Do it!
 fix_items_in_rdfiles(indir, outdir)
 }
 
